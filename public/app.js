@@ -60,7 +60,7 @@ function updateAnalyze() {
 }
 function setBusy(value) {
   busy = value;
-  for (const element of document.querySelectorAll('#exercise-options button, #tracking-side, #side-confirm, #clip-start, #clip-end, #replace-video, #sample-button, #playback-controls button, #playback-controls input, #playback-controls select')) element.disabled = value;
+  for (const element of document.querySelectorAll('#exercise-options button, #tracking-side, #side-confirm, #clip-start, #clip-end, #video-input, #replace-input, #sample-button, #playback-controls button, #playback-controls input, #playback-controls select')) element.disabled = value;
   $('progress-box').hidden = !value; updateAnalyze();
 }
 function stopAnalysis() {
@@ -74,6 +74,7 @@ function resetReview() {
   if (videoUrl) URL.revokeObjectURL(videoUrl); videoUrl = null;
   $('upload-zone').hidden = false; $('playback').hidden = true; $('playback-controls').hidden = true; $('results').hidden = true; $('coach-card').hidden = true; $('below-upload').hidden = false; $('replace-video').hidden = true; $('sample-button').hidden = false; $('trim-fields').hidden = true; $('saved-placeholder').hidden = true; $('sample-badge').hidden = true; $('overlay-label').hidden = false; $('video-label').textContent = ' YOUR REVIEW SPACE'; $('video-meta').textContent = 'MP4 · MOV · WEBM'; $('side-confirm').checked = false; $('video-input').value = ''; error(''); updateAnalyze();
   video.hidden = false;
+  $('replace-input').value = '';
 }
 function setExercise(next) {
   if (busy) return;
@@ -87,8 +88,9 @@ function setExercise(next) {
 document.querySelectorAll('[data-exercise]').forEach(b => { b.onclick = () => setExercise(b.dataset.exercise); });
 $('side-confirm').onchange = updateAnalyze;
 $('tracking-side').onchange = () => { if (report && mode === 'video') toast('Analyze again to review using the selected side.'); };
-['choose-video', 'replace-video'].forEach(id => { $(id).onclick = () => $('video-input').click(); });
-$('video-input').onchange = () => { const selected = $('video-input').files[0]; if (selected) loadFile(selected); };
+for (const id of ['video-input', 'replace-input']) {
+  $(id).onchange = () => { const selected = $(id).files[0]; if (selected) loadFile(selected); };
+}
 const zone = $('video-panel');
 for (const event of ['dragenter', 'dragover']) zone.addEventListener(event, e => { e.preventDefault(); if (!busy) $('upload-zone').classList.add('dragover'); });
 for (const event of ['dragleave', 'drop']) zone.addEventListener(event, e => { e.preventDefault(); $('upload-zone').classList.remove('dragover'); });

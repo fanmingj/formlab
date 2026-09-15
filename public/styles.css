@@ -10,4 +10,5 @@
 @media(max-width:980px){.sidebar .nav-item{font-size:0}.metrics span{font-size:10px}.metrics small{font-size:9px}}
 @media(max-width:760px){.page-title p{font-size:12px}.eyebrow{font-size:9px}.exercise-option strong{font-size:12px}.video-bottom>span,.light{font-size:10px}.chart-caption{font-size:9px}.metrics span{font-size:9px}.metrics small{font-size:8px}.metrics>div{padding:15px 10px}}
 @media(max-width:420px){.exercise-option strong{font-size:11px}.video-bottom>span,.light{font-size:9px}.upload-limit{font-size:10px}.gentle-note p{font-size:10px}.metrics small{font-size:10px}}
+.file-picker{position:relative;cursor:pointer;overflow:hidden}.file-picker input[type=file]{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;z-index:2}.file-picker:focus-within{outline:3px solid #92b96c;outline-offset:4px}.file-picker:has(input:disabled){opacity:.55;cursor:not-allowed}.file-picker input:disabled{cursor:not-allowed}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
