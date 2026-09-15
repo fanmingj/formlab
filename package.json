@@ -1,0 +1,13 @@
+{
+  "name": "formlab",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Private, on-device exercise video review with pose estimation and explainable movement feedback.",
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "start": "node server.mjs",
+    "test": "node --test test/*.test.mjs",
+    "test:browser": "node server.mjs --qa"
+  }
+}

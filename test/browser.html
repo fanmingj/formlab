@@ -1,0 +1,45 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>FormLab browser verification</title><style>body{font:15px system-ui;padding:30px;background:#f6f7f2;color:#183e35}button{padding:12px;margin:5px}pre{white-space:pre-wrap;line-height:1.7}iframe{width:100%;height:720px;border:1px solid #cdd9c0}canvas{width:240px}#fixture{max-width:300px}</style></head><body><h1>FormLab browser verification</h1><p>Development-only checks. This page is not served without --qa.</p><button id="smoke">Run real model smoke test</button><button id="flow">Run upload and history integration test</button><pre id="log">Ready.</pre><img id="fixture" alt="Model test fixture" hidden><iframe id="app" src="/" title="FormLab test instance"></iframe><script type="module">
+import { PoseEngine } from '/inference.js';
+const log = document.querySelector('#log');
+const write = text => { log.textContent += '\n' + text; };
+const wait = ms => new Promise(r => setTimeout(r, ms));
+async function until(fn, timeout=120000) { const start=Date.now(); while(!fn()){ if(Date.now()-start>timeout)throw new Error('Timed out waiting for UI'); await wait(100); } }
+document.querySelector('#smoke').onclick = async () => {
+  const engine = new PoseEngine(); log.textContent = 'Loading real MediaPipe model…';
+  try {
+    await engine.init(); write('PASS: model and WASM initialized in worker.');
+    const image = document.querySelector('#fixture'); image.crossOrigin = 'anonymous'; image.src = 'https://storage.googleapis.com/mediapipe-assets/pose.jpg'; await image.decode(); image.hidden = false;
+    const result = await engine.frame(image, 1000); if(result.people !== 1 || result.landmarks?.length !== 33) throw new Error('Expected one pose with 33 landmarks.');
+    write(`PASS: actual inference detected ${result.people} person and ${result.landmarks.length} landmarks.`);
+    const blank = document.createElement('canvas'); blank.width=640;blank.height=480;blank.getContext('2d').fillRect(0,0,640,480);
+    const empty = await engine.frame(blank, 2000); if(empty.people !== 0) throw new Error('Blank image should contain no people.');
+    write('PASS: empty image returns no pose.\nMODEL SMOKE TEST PASSED');
+  }catch(e){write('FAIL: '+e.message);}finally{engine.close();}
+};
+document.querySelector('#flow').onclick = async () => {
+  log.textContent = 'Generating a 3-second blank test video…';
+  try {
+    const canvas=document.createElement('canvas');canvas.width=480;canvas.height=360;const ctx=canvas.getContext('2d');
+    const stream=canvas.captureStream(12), chunks=[];const recorder=new MediaRecorder(stream,{mimeType:'video/webm'});recorder.ondataavailable=e=>chunks.push(e.data); const done=new Promise(r=>recorder.onstop=r);recorder.start();
+    for(let i=0;i<36;i++){ctx.fillStyle='#202a25';ctx.fillRect(0,0,480,360);ctx.fillStyle='#d5f58b';ctx.fillRect(30+i*5,150,20,20);await wait(100);}recorder.stop();await done;stream.getTracks().forEach(t=>t.stop());
+    const file=new File(chunks,'formlab-blank-test.webm',{type:'video/webm'}); const frame=document.querySelector('#app'), d=frame.contentDocument;
+    // Exported browser recordings may report Infinity until seeking past the end.
+    const input=d.querySelector('#video-input'), dt=new DataTransfer();dt.items.add(file); input.files=dt.files;input.dispatchEvent(new Event('change',{bubbles:true}));
+    await until(()=>!d.querySelector('#trim-fields').hidden || !d.querySelector('#error-box').hidden,20000);
+    if(!d.querySelector('#error-box').hidden)throw new Error(d.querySelector('#error-box').textContent);
+    write('PASS: actual generated video loaded.');
+    d.querySelector('#side-confirm').click();d.querySelector('#analyze-button').click();await until(()=>!d.querySelector('#results').hidden || !d.querySelector('#error-box').hidden);
+    if(!d.querySelector('#error-box').hidden)throw new Error(d.querySelector('#error-box').textContent);
+    if(d.querySelector('#metric-coverage').textContent!=='0%')throw new Error('Blank video should have zero tracking coverage.');
+    if(!d.querySelector('#coach-notes').textContent.includes('withheld'))throw new Error('Uncertain video should withhold coaching.');
+    write('PASS: real upload → frame decode → model inference → low-confidence report.');
+    d.querySelector('#save-report').click();d.querySelector('#nav-history').click();await wait(100);
+    const card=[...d.querySelectorAll('.history-card')].find(el=>el.textContent.includes('formlab-blank-test.webm'));if(!card)throw new Error('Saved review missing');
+    card.querySelector('[data-open]').click();if(d.querySelector('#saved-placeholder').hidden)throw new Error('Saved review should not imply video was retained.');
+    write('PASS: save and reopen report without retaining video.');
+    d.querySelector('#nav-history').click();const current=[...d.querySelectorAll('.history-card')].find(el=>el.textContent.includes('formlab-blank-test.webm'));current.querySelector('[data-delete]').click();
+    if([...d.querySelectorAll('.history-card')].some(el=>el.textContent.includes('formlab-blank-test.webm')))throw new Error('Delete failed');
+    write('PASS: test report removed.\nBROWSER INTEGRATION PASSED');
+  }catch(e){write('FAIL: '+e.message);}
+};
+</script></body></html>
