@@ -2,6 +2,8 @@
 
 **Your movement, in focus.** A private exercise video review studio for squats, push-ups, and biceps curls. Upload a set, follow your movement with a pose overlay, and jump to the moments behind each review cue.
 
+**[Open FormLab](https://fanmingj.github.io/formlab/)** · [Automated checks](https://github.com/fanmingj/formlab/actions/workflows/test.yml)
+
 ## Start locally
 
 Requires Node.js 22 or newer. No package installation, API key, or account is needed.
@@ -106,3 +108,4 @@ These tests verify software behavior, not biomechanical accuracy on a representa
 - [Pose Landmarker JavaScript API](https://developers.google.com/edge/api/mediapipe/js/tasks-vision.poselandmarker)
 
 MediaPipe is a third-party Google project. FormLab uses `@mediapipe/tasks-vision` version `0.10.14` and the version 1 Float16 Pose Landmarker Lite model, loaded at runtime. Third-party packages and model assets retain their own licenses.
+
